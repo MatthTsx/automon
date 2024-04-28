@@ -1,7 +1,7 @@
 import { type Session } from "next-auth";
 import { SessionProvider } from "next-auth/react";
 import { type AppType } from "next/app";
-import { Inter } from "next/font/google";
+import { Inter, Rubik_Mono_One, Rubik_Wet_Paint } from "next/font/google";
 
 import { api } from "~/utils/api";
 
@@ -11,6 +11,12 @@ const inter = Inter({
   subsets: ["latin"],
   variable: "--font-sans",
 });
+const Rubik_MO = Rubik_Mono_One({
+  weight: "400", variable: "--font-r-mono-one", subsets: ["latin"]
+})
+const Rubik_WP = Rubik_Wet_Paint({
+  weight: "400", variable: "--font-r-wet-paint", subsets: ["latin"]
+})
 
 const MyApp: AppType<{ session: Session | null }> = ({
   Component,
@@ -18,7 +24,9 @@ const MyApp: AppType<{ session: Session | null }> = ({
 }) => {
   return (
     <SessionProvider session={session}>
-      <main className={`font-sans ${inter.variable}`}>
+      <main className={`font-sans
+        ${inter.variable} ${Rubik_MO.variable} ${Rubik_WP.variable}
+      `}>
         <Component {...pageProps} />
       </main>
     </SessionProvider>

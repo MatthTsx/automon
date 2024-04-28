@@ -1,3 +1,18 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+
+@layer components {
+    h1 {
+        @apply 2xl:text-9xl font-Rubik_MO xl:text-8xl
+    }
+
+    .game-top-bar-content {
+        @apply bg-Main_white font-Rubik_WP text-4xl rounded-lg flex px-2 justify-end border-Main_purple border-4 w-[3em] last:w-[5em]
+    }
+
+    .clip-path-1{
+        clip-path: polygon(0 0, 100% 0, 40% 100%, 0% 100%);
+    }
+}

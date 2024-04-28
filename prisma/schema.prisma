@@ -49,6 +49,96 @@ model User {
     image         String?
     accounts      Account[]
     sessions      Session[]
+    
+    isAdmin Boolean @default(false)
+    GameStatus Game?
+    isOnGame Boolean @default(false)
+}
+
+model Game {
+    id String @id @db.ObjectId @map("_id") @default(auto())
+    User User @relation(fields: [UserId], references: [id])
+    UserId String @db.ObjectId @unique
+
+    Lives Int @default(5)
+    Trophies Int @default(0)
+    Turn Int @default(1)
+    Gold Int @default(10)
+
+    Pet Pet[]
+    Shop Shop?
+}
+
+model Shop{
+    id String @id @db.ObjectId @map("_id") @default(auto())
+    Game Game @relation(fields: [GameId], references: [id], onDelete: Cascade)
+    GameId String @db.ObjectId @unique
+
+    Tier Int @default(1)
+    HealthPlus Int @default(0)
+    DamagePlus Int @default(0)
+
+    FrozenFoods FrozenFoods[]
+    ShopPets Pet[]
+}
+
+model FrozenFoods{
+    id String @id @db.ObjectId @map("_id") @default(auto())
+    Shop Shop @relation(fields: [ShopId], references: [id])
+    ShopId String @db.ObjectId @unique
+}
+
+model Pet {
+    id String @id @db.ObjectId @map("_id") @default(auto())
+    Game Game? @relation(fields: [GameId], references: [id], onDelete: Cascade)
+    GameId String? @db.ObjectId
+
+    BaseData Automon @relation(fields: [AutomonId], references: [id])
+    AutomonId String @db.ObjectId
+    Heath Int
+    Damage Int
+    Level Int @default(1)
+    LevelProgress Int @default(0)
+
+    Shop Shop? @relation(fields: [ShopId], references: [id], onDelete: Cascade)
+    ShopId String? @db.ObjectId
+    isFrozen Boolean @default(false)
+    // Perk
+}
+
+model Automon {
+    id String @id @db.ObjectId @map("_id") @default(auto())
+    Name String
+    BaseHealth Int
+    BaseDmg Int
+    LevelsDescription String[]
+    ShopTier Int @default(1)
+
+    AbilityFunc String
+    ImagePath String
+    LevelAbilityType AbilityType[]
+
+    Pets Pet[]
+}
+
+enum AbilityType{
+    BEFORE_BATTLE
+    START_BATTLE
+    HURT
+    DOES_DAMAGE
+    LEVEL_UP
+    FRIEND_HURT
+}
+
+model Foods {
+    id String @id @db.ObjectId @map("_id") @default(auto())
+    tier Int
+    ImgPath String
+    isPerk Boolean @default(false)
+    Description String
+    HealthIncrease Int?
+    DamageIncrease Int?
+    Name String
 }
 
 model VerificationToken {
