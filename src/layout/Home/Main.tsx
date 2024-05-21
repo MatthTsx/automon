@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import { useRouter } from 'next/navigation'
 import React from 'react'
 import { api } from '~/utils/api'
@@ -12,7 +13,6 @@ function Main({...p}:SessionRetrieve) {
   })
   const newGame = api.game.startNewGame.useMutation()
 
-  console.log(user.data)
   if(user.status == "pending") return <>Loading</>
 
   const GoNewGame = async () => {
