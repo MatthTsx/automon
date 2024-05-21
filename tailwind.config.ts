@@ -8,7 +8,8 @@ export default {
       fontFamily: {
         sans: ["var(--font-sans)", ...fontFamily.sans],
         Rubik_MO: ["var(--font-r-mono-one)", ...fontFamily.sans],
-        Rubik_WP: ["var(--font-r-wet-paint)", ...fontFamily.sans]
+        Rubik_WP: ["var(--font-r-wet-paint)", ...fontFamily.sans],
+        Rowdies: ["var(--font-rowdies)", ...fontFamily.sans]
       },
       colors: {
         Main_purple: "#08040C", Main_white: "#DBDBDB",
