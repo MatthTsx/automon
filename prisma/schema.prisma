@@ -55,6 +55,29 @@ model User {
     isOnGame Boolean @default(false)
 }
 
+model BattleDuelist {
+    id String @id @default(auto()) @map("_id") @db.ObjectId
+    Pets Pet[]
+    Turn Int
+    Lives Int @default(5)
+    Trophies Int @default(0)
+
+    BaseGame Game @relation(fields: [GameId], references: [id])
+    GameId String @db.ObjectId
+
+    Fought1 BattleFought[] @relation("r1")
+    Fought2 BattleFought[] @relation("r2")
+}
+
+model BattleFought {
+    id String @id @default(auto()) @map("_id") @db.ObjectId
+    BattleD BattleDuelist @relation("r1", fields: [BattleId], references: [id], onDelete: Cascade)
+    BattleId String @db.ObjectId
+
+    BattleD2 BattleDuelist? @relation("r2" ,fields: [BattleId2], references: [id], onDelete: Cascade)
+    BattleId2 String? @db.ObjectId
+}
+
 model Game {
     id String @id @db.ObjectId @map("_id") @default(auto())
     User User @relation(fields: [UserId], references: [id])
@@ -66,6 +89,7 @@ model Game {
     Gold Int @default(10)
 
     Pet Pet[]
+    BattleFoughts BattleDuelist[]
     Shop Shop?
 }
 
@@ -99,11 +123,15 @@ model Pet {
     Damage Int
     Level Int @default(1)
     LevelProgress Int @default(0)
+    BattlePosition Int?
 
     Shop Shop? @relation(fields: [ShopId], references: [id], onDelete: Cascade)
     ShopId String? @db.ObjectId
     isFrozen Boolean @default(false)
     // Perk
+
+    Battle BattleDuelist? @relation(fields: [BattleId], references: [id], onDelete: Cascade)
+    BattleId String? @db.ObjectId
 }
 
 model Automon {
