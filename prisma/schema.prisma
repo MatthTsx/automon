@@ -62,8 +62,9 @@ model BattleDuelist {
     Lives Int @default(5)
     Trophies Int @default(0)
 
-    BaseGame Game @relation(fields: [GameId], references: [id])
-    GameId String @db.ObjectId
+    BaseGame String @db.ObjectId
+    // BaseGame Game @relation(fields: [GameId], references: [id], onDelete: Cascade)
+    // GameId String @db.ObjectId
 
     Fought1 BattleFought[] @relation("r1")
     Fought2 BattleFought[] @relation("r2")
@@ -89,7 +90,7 @@ model Game {
     Gold Int @default(10)
 
     Pet Pet[]
-    BattleFoughts BattleDuelist[]
+    // BattleFoughts BattleDuelist[]
     Shop Shop?
 }
 
