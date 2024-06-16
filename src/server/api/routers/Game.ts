@@ -76,50 +76,53 @@ export const GameRouter = createTRPCRouter({
         })
     }),
 
-    StartBattle: protectedProcedure
-        .input(z.object({id: z.string()}))
-        .mutation(async ({ctx, input}) => {
-            const data = await ctx.db.game.findUnique({
-                where: {id: input.id}, include: {Pet: true}
+    
+    LevelUp: publicProcedure
+        .input(z.object({id1: z.string(), id2: z.string(), gameId: z.string()}))
+        .mutation( async ({ctx, input}) => {
+            const pet1 = await ctx.db.pet.findUnique({
+                where: {id: input.id1},
+                select: {Level: true, LevelProgress: true}
             })
-            if(!data) return
+            const game = await ctx.db.game.findUnique({
+                where: {id: input.gameId},
+                select: {Gold: true}
+            })
 
-            const D1 = await ctx.db.battleDuelist.create({
-                data: {Turn: data.Turn, Lives: data.Lives, Pets: {createMany: {data:
-                    data.Pet.map(p =>  ({
-                        AutomonId: p.AutomonId, Damage: p.Damage, Heath: p.Heath, BattlePosition: p.BattlePosition, Level: p.Level,
-                        LevelProgress: p.LevelProgress }) )
-                }}, BaseGame: {connect: {id: input.id}}
+            if (pet1?.Level == 3) return
+
+            const pet2 = await ctx.db.pet.findUnique({
+                where: {id: input.id2},
+                select: {Level: true, LevelProgress: true, ShopId: true}
+            })
+
+            if(pet2?.ShopId){
+                if(game!.Gold < 3) return
+                await ctx.db.game.update({where: {id: input.gameId}, data: {Gold: {decrement: 3}}})
             }
-            })
+            await ctx.db.pet.delete({where: {id: input.id2}})
 
-            const getRandom = await ctx.db.battleDuelist.findFirst({
-                where: { Turn: data.Turn, BaseGame: {NOT: {id: input.id}} },
-                skip: Math.floor( Math.random() * await ctx.db.battleDuelist.count({ where: {Turn: data.Turn, BaseGame:{NOT: {id: input.id }} } }) ),
-                include: {Pets: true}
-            })
+            let statsUp = (pet2!.Level == 3 ? 6 : pet2!.LevelProgress == 2 ? 3 : 0) + 1 + pet2!.LevelProgress
+            let progress = pet1!.LevelProgress + statsUp
+            let Level = pet1!.Level
+            statsUp = Math.min(pet1!.LevelProgress + statsUp + (pet1!.Level == 3 ? 6 : pet1!.Level == 2 ? 3 : 0), 6)
+            statsUp -= (pet1!.LevelProgress + (pet1!.Level == 3 ? 6 : pet1!.Level == 2 ? 3 : 0))
 
-            if(!getRandom?.id) return
+            if (Level == 1 && progress >= 2){
+                Level ++;
+                progress -= 2;
+            }
+            if (Level == 2 && progress >= 3){
+                Level ++;
+                progress = 0;
+            }
 
-
-
-
-            return await ctx.db.battleFought.create({
+            await ctx.db.pet.update({
+                where: {id: input.id1},
                 data: {
-                    BattleD: {connect: {id: D1.id}},
-                    BattleD2:{connect: {id: getRandom.id}}
-                }
-            })
-        }),
-
-    GetFightData: publicProcedure
-        .input(z.object({id: z.string()}))
-        .query(async ({ctx, input}) => {
-            return await ctx.db.battleFought.findUnique({
-                where: {id: input.id},
-                include: {
-                    BattleD: {include: {Pets: true}},
-                    BattleD2: {include: {Pets: true}}
+                    Level, LevelProgress: progress,
+                    Damage: {increment: statsUp},
+                    Heath: {increment: statsUp},
                 }
             })
         })
