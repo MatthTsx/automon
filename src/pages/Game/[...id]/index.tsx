@@ -11,12 +11,13 @@ function Home() {
   const RouterChanger = useRouter()
   const router = RouterChanger.asPath.replace("/Game/", "")
   const game = api.game.getGameData.useQuery({id: router})
-  const startBattle = api.game.StartBattle.useMutation()
+  const startBattle = api.battle.StartBattle.useMutation()
   const roll = api.shop.RollShop.useMutation()
   const sell = api.shop.SellPet.useMutation()
   const freeze = api.shop.FreezePet.useMutation()
   const BuyPet = api.shop.BuyPet.useMutation()
   const changePos = api.game.GoToPlace.useMutation()
+  const lvlUp = api.game.LevelUp.useMutation()
 
   const [Selected, setSelected] = React.useState({id: "", fromShop: false, TypeId: "", pos: -1})
 
@@ -49,10 +50,14 @@ function Home() {
             }}>
               <div className='absolute bg-green-700 w-full h-4 bottom-0'/>
               {p &&
-                <BattlePet key={i} AType={p.BaseData.LevelAbilityType[p.Level]!} Damage={p.Damage} Health={p.Heath} ImagePath={p.BaseData.ImagePath} id={p.id}
-                ShowLevel Tier={p.BaseData.ShopTier} desc={p.BaseData.LevelsDescription[p.Level]!} name={p.BaseData.Name} isFromShop={false} Level={p.Level} LvLProgress={p.LevelProgress}
+                <BattlePet key={i} AType={p.BaseData.LevelAbilityType[p.Level-1]!} Damage={p.Damage} Health={p.Heath} ImagePath={p.BaseData.ImagePath} id={p.id}
+                ShowLevel Tier={p.BaseData.ShopTier} desc={p.BaseData.LevelsDescription[p.Level-1]!} name={p.BaseData.Name} isFromShop={false} Level={p.Level} LvLProgress={p.LevelProgress}
                 func={() => {
-                  if(Selected.id == p.id || Selected.TypeId == p.AutomonId) return
+                  if(LvlUp) return lvlUp.mutateAsync({gameId: game.data!.id, id1: p.id, id2: Selected.id}).then(async () => {
+                    setSelected({id: "", pos: -1, fromShop: false, TypeId: ""})
+                    await game.refetch()
+                  })
+                  if(Selected.TypeId == p.AutomonId) return console.log("level up!!")
                   setSelected({id: p.id, fromShop: false, TypeId: p.AutomonId, pos: i})
                 }}
                 Selected={Selected} BaseId={p.BaseData.id} sellValue={p.Level}
@@ -73,7 +78,6 @@ function Home() {
             <ShopPet Tier={j.BaseData.ShopTier} ImagePath={j.BaseData.ImagePath} key={i} Health={j.Heath} Damage={j.Damage} desc={j.BaseData.LevelsDescription[0]!} name={j.BaseData.Name} AType={j.BaseData.LevelAbilityType[0] ?? ""}
             isFromShop func={ () => {
               setSelected({id: j.id, fromShop: true, TypeId: j.AutomonId, pos: -1})
-              // await BuyPet.mutateAsync({gameId: game.data!.id, PetId: j.id}).then(() => game.refetch())
             }} ShowLevel={false} Selected={Selected} id={j.id} sellValue={3}/>
           )}
         </div>
@@ -112,7 +116,10 @@ function Home() {
         <button onClick={async (e) => {
           const btn = e.target as HTMLButtonElement
           btn.disabled = true
-          await startBattle.mutateAsync({id: game.data!.id}).then(async (d) => await RouterChanger.push(`/Battles/${d!.id}`))
+          await startBattle.mutateAsync({id: game.data!.id})
+            .then(async (d) => 
+              await RouterChanger.push(`/Battles/${d!.id}`)
+              )
           btn.disabled = false
         }} disabled={game.data.Pet.length == 0}>
           Battle
@@ -176,6 +183,7 @@ function BattlePet({...p} : BattlePetInterface){
   return <div className='w-full'>
     <Pet AType={p.AType} Damage={p.Damage} Health={p.Health} Tier={p.Tier} ImagePath={p.ImagePath} isFromShop={false} sellValue={p.sellValue}
           desc={p.desc} name={p.name} func={p.func} ShowLevel Selected={p.Selected} id={p.id}/>
+    <div className='absolute w-8 h-8 bg-white'>{p.Level} {p.LvLProgress}</div>
   </div>
 }
 
@@ -190,9 +198,6 @@ function ShopPet({...p} : PetProps) {
 
 function Pet({...p} : PetProps){
   return <div className='flex items-center justify-center relative group petClick' style={{backgroundColor: p.Selected.id == p.id ? "red" : "transparent"}}>
-    {p.ShowLevel && <div className='bg-red-500 '>
-      
-    </div>}
 
     <div className='absolute w-[300%] 2xl:w-[250%] group-hover:flex hidden top-[-9em] z-10 bg-white p-2 flex-col rounded-md border-black border-4 items-center pb-4'>
       <div className='flex  w-full h-10 2xl:h-12 justify-between items-center'>
